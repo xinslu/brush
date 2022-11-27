@@ -1,2 +1,2 @@
 # brush
-A minimal non-POSIX Compliant Shell written in C
+A minimal POSIX Compliant Shell written in C
