@@ -5,4 +5,5 @@
 char *readline();
 int main();
 char *readline(void);
-void brush_error(char *);
+void parse_path(char *);
+void brush_error(const char *);

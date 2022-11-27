@@ -8,11 +8,20 @@
 int main() {
   char *curr_line;
   int status = 0;
+  int pid;
+  char *username = getenv("LOGNAME");
   do {
-    printf("$ ");
+    printf("%s:$ ", username);
     fflush(stdout);
     curr_line = readline();
-    printf("%s", curr_line);
+    if (*curr_line == EOF) {
+      return 0;
+    }
+    printf("Line: %s\n", curr_line);
+    pid = fork();
+    if (pid == 0) {
+      parse_path(getenv("PATH"));
+    }
   } while (status);
 }
 
@@ -22,13 +31,11 @@ char *readline() {
   int bufsize = INIT_LINE_LENGTH;
   char *buffer = malloc(sizeof(char) * INIT_LINE_LENGTH);
   if (!buffer) {
-    printf("\033[0;31m");
-    fprintf(stderr, "brush: error allocating memory");
-    printf("\033[0m");
+    brush_error("Error Allocating Memory");
   }
   while (1) {
     c = getchar();
-    if (c == EOF || c == '\n') {
+    if (c == '\n') {
       buffer[i] = '\0';
       return buffer;
     } else {
@@ -40,17 +47,23 @@ char *readline() {
       bufsize += INIT_LINE_LENGTH;
       buffer = realloc(buffer, (unsigned int)bufsize);
       if (!buffer) {
-        printf("\033[0;31m");
-        fprintf(stderr, "brush: error allocating memory");
-        printf("\033[0m");
+        brush_error("Error Allocating Memory");
       }
     }
   }
   return buffer;
 }
 
-void brush_error(char *message) {
+void parse_path(char *path) {
+  char *split = strtok(path, ":");
+  while (split != NULL) {
+    printf("%s\n", split);
+    split = strtok(NULL, ":");
+  }
+}
+
+void brush_error(const char *message) {
   printf("\033[0;31m");
-  fprintf(stderr, "%s", message);
+  fprintf(stderr, "brush: %s", message);
   printf("\033[0m");
 }
