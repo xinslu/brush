@@ -4,14 +4,14 @@
 #define INIT_PATH_LENGTH 50
 
 typedef struct {
-    char **path_elem;
-    int elements;
-} Path;
+    char **char_arr;
+    int arr_size;
+} res_t;
 
 
 char *readline();
 int main();
 char *readline(void);
-Path parse_path(char *);
+res_t parse_path(char *);
 void brush_error(const char *);
 int file_exists(char *);
