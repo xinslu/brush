@@ -25,7 +25,3 @@ release: $(BINDIR)/$(TARGET)
 $(BINDIR)/$(TARGET): $(SRC) $(INC)
 	@mkdir -p $(BINDIR)
 	@$(CC) $(CFLAGS) $(INCFLAGS) $(SRC) -o $@ $(LFLAGS)
-
-
-
-
