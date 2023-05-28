@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/wait.h>
 
 int main() {
   char *curr_line;
@@ -23,36 +23,44 @@ int main() {
     }
 
     res_t command = split(curr_line, " ", 0);
-    char **argv= command.char_arr;
+    char **argv = command.char_arr;
 
     pid = fork();
 
     if (pid == 0) {
       int status = 0;
 
-      for (int i = 0; i < res.arr_size; i++) {
+      if (strcmp(argv[0], "cd") == 0) {
+        chdir(argv[1]);
+        status = 1;
+      } else {
 
-        char *filename = malloc(strlen(res.char_arr[i])+strlen(command.char_arr[0]));
-        filename = strcat(strcpy(filename, res.char_arr[i]), command.char_arr[0]);
+        for (int i = 0; i < res.arr_size; i++) {
 
-        if (file_exists(filename)) {
-          status = 1;
-          execv(filename, argv);
-          fflush(stdout);
-          break;
+          char *filename =
+              malloc(strlen(res.char_arr[i]) + strlen(command.char_arr[0]));
+          filename =
+              strcat(strcpy(filename, res.char_arr[i]), command.char_arr[0]);
+
+          if (file_exists(filename)) {
+            status = 1;
+            execv(filename, argv);
+            fflush(stdout);
+            break;
+          }
         }
 
       }
 
       if (status == 0) {
-        brush_error(strcat(command.char_arr[0]," command not found"));
+        brush_error(strcat(command.char_arr[0], " command not found"));
       }
 
     } else if (pid != 0) {
-        wait(0);
+      wait(0);
     }
     for (int i = 0; i < command.arr_size; i++) {
-        free(command.char_arr[i]);
+      free(command.char_arr[i]);
     }
     free(command.char_arr);
   }
@@ -89,7 +97,6 @@ char *readline() {
       if (!buffer) {
         brush_error("Error Allocating Memory");
       }
-
     }
   }
   return buffer;
@@ -114,7 +121,7 @@ res_t split(char *path, const char *sp_char, int append) {
     split_malloc = malloc(strlen(split) + 1);
 
     if (!split_malloc) {
-        brush_error("Error Allocating Memory");
+      brush_error("Error Allocating Memory");
     }
 
     strcpy(split_malloc, split);
@@ -125,9 +132,9 @@ res_t split(char *path, const char *sp_char, int append) {
     }
 
     if (append) {
-        path_buffer[elements] = strcat(split_malloc, "/");
+      path_buffer[elements] = strcat(split_malloc, "/");
     } else {
-        path_buffer[elements] = split_malloc;
+      path_buffer[elements] = split_malloc;
     }
     split = strtok(NULL, sp_char);
     elements++;
@@ -141,5 +148,4 @@ void brush_error(const char *message) {
   printf("\033[0;31m");
   fprintf(stdout, "brush: %s\n", message);
   printf("\033[0m");
-
 }
