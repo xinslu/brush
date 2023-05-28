@@ -51,7 +51,10 @@ int main() {
     } else if (pid != 0) {
         wait(0);
     }
-
+    for (int i = 0; i < command.arr_size; i++) {
+        free(command.char_arr[i]);
+    }
+    free(command.char_arr);
   }
 }
 
