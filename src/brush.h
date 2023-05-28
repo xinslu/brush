@@ -9,9 +9,8 @@ typedef struct {
 } res_t;
 
 
-char *readline();
 int main();
-char *readline(void);
-res_t parse_path(char *);
+res_t split(char *, const char *, int);
 void brush_error(const char *);
 int file_exists(char *);
+char *readline(void);

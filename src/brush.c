@@ -11,34 +11,47 @@ int main() {
   char *curr_line;
   int pid;
   char *username = getenv("LOGNAME");
-  res_t res = parse_path(getenv("PATH"));
+  res_t res = split(getenv("PATH"), ":", 1);
+
   while (1) {
+
     printf("%s:$ ", username);
     curr_line = readline();
+
     if (*curr_line == EOF) {
       return 0;
     }
+
+    res_t command = split(curr_line, " ", 0);
+    char **argv= command.char_arr;
+
     pid = fork();
+
     if (pid == 0) {
       int status = 0;
+
       for (int i = 0; i < res.arr_size; i++) {
-        char *filename = malloc(strlen(res.char_arr[i])+strlen(curr_line));
-        filename = strcat(strcpy(filename, res.char_arr[i]), curr_line);
+
+        char *filename = malloc(strlen(res.char_arr[i])+strlen(command.char_arr[0]));
+        filename = strcat(strcpy(filename, res.char_arr[i]), command.char_arr[0]);
+
         if (file_exists(filename)) {
-          char *argv;
           status = 1;
-          execv(filename, &argv);
+          execv(filename, argv);
           fflush(stdout);
           break;
         }
+
       }
+
       if (status == 0) {
-        brush_error("command not found");
+        brush_error(strcat(command.char_arr[0]," command not found"));
       }
 
     } else if (pid != 0) {
         wait(0);
     }
+
   }
 }
 
@@ -52,6 +65,7 @@ char *readline() {
   int c;
   int bufsize = INIT_LINE_LENGTH;
   char *buffer = malloc(INIT_LINE_LENGTH);
+
   if (!buffer) {
     brush_error("Error Allocating Memory");
   }
@@ -68,33 +82,54 @@ char *readline() {
     if (i >= bufsize) {
       bufsize += INIT_LINE_LENGTH;
       buffer = realloc(buffer, (unsigned int)bufsize);
+
       if (!buffer) {
         brush_error("Error Allocating Memory");
       }
+
     }
   }
   return buffer;
 }
 
-res_t parse_path(char *path) {
-  char *split = strtok(path, ":");
-  char **path_buffer = malloc(INIT_PATH_LENGTH);
+res_t split(char *path, const char *sp_char, int append) {
+
+  char *split = strtok(path, sp_char);
+  char **path_buffer = malloc(INIT_LINE_LENGTH);
+
+  if (!path_buffer) {
+    brush_error("Error Allocating Memory");
+  }
+
   char *split_malloc;
   int elements = 0;
   int totalSize = strlen(split) + 1;
-  int bufsize = INIT_PATH_LENGTH;
+  int bufsize = INIT_LINE_LENGTH;
+
   while (split != NULL) {
     totalSize += (int)(strlen(split) + 1);
     split_malloc = malloc(strlen(split) + 1);
+
+    if (!split_malloc) {
+        brush_error("Error Allocating Memory");
+    }
+
     strcpy(split_malloc, split);
+
     if (totalSize >= bufsize) {
-      bufsize += INIT_PATH_LENGTH;
+      bufsize += INIT_LINE_LENGTH;
       path_buffer = realloc(path_buffer, (unsigned int)bufsize);
     }
-    path_buffer[elements] = strcat(split_malloc, "/");
-    split = strtok(NULL, ":");
+
+    if (append) {
+        path_buffer[elements] = strcat(split_malloc, "/");
+    } else {
+        path_buffer[elements] = split_malloc;
+    }
+    split = strtok(NULL, sp_char);
     elements++;
   }
+
   res_t path_arr = {path_buffer, elements};
   return path_arr;
 }
